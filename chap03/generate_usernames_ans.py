@@ -45,13 +45,15 @@ def generate_username(fields, usernames):
 
 
 def print_users(users):
-    namewidth = 32
+    namewidth = 17
     usernamewidth = 9
 
-    print("{0:<{nw}} {1:^6} {2:{uw}}".format(
-          "Name", "ID", "Username", nw=namewidth, uw=usernamewidth))
-    print("{0:-<{nw}} {0:-<6} {0:-<{uw}}".format(
-          "", nw=namewidth, uw=usernamewidth))
+    header = "  ".join(["{0:<{nw}} {1:^6} {2:{uw}}".format(
+                        "Name", "ID", "Username", nw=namewidth, uw=usernamewidth)] * 2) + "\n" + \
+             "  ".join(["{0:-<{nw}} {0:-<6} {0:-<{uw}}".format(
+                        "", nw=namewidth, uw=usernamewidth)] * 2)
+
+    userlist = []
 
     for key in sorted(users):
         user = users[key]
@@ -59,8 +61,16 @@ def print_users(users):
         if user.middlename:
             initial = " " + user.middlename[0]
         name = "{0.surname}, {0.forename}{1}".format(user, initial)
-        print("{0:.<{nw}} ({1.id:4}) {1.username:{uw}}".format(
+        userlist.append("{0:.<{nw}.{nw}} ({1.id:4}) {1.username:{uw}}".format(
               name, user, nw=namewidth, uw=usernamewidth))
 
+    for line, user in enumerate(zip(userlist[::2], userlist[1::2])):
+        if line % 64 == 0:
+            if line != 0:
+                print("\f")
+            print(header)
+        print(user[0] + "  " + user[1])
+    if userlist[-1] != user[1]:
+        print(userlist[-1])
 
 main()
