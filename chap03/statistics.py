@@ -4,6 +4,9 @@ import collections
 import math
 import sys
 
+import string
+
+string.punctuation
 
 Statistics = collections.namedtuple("Statistics",
                                     "mean mode median std_dev")
