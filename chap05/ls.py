@@ -1,51 +1,69 @@
 import optparse
 import locale
-import collections
-import os
-import time
+locale.setlocale(locale.LC_ALL, "")
 
+import datetime
+import optparse
+import os
 
 def main():
-    usage = ("usage: %prog [options] [path1 [path2 [... pathN]]]\n"
-             "The paths are optional; if not given . is used.")
+    counts = [0, 0]
+    opts, paths = process_options()
+    if not opts.recursive:
+        filenames = []
+        dirnames = []
+        for path in paths:
+            if os.path.isfile(path):
+                filenames.append(path)
+                continue
+            for name in os.listdir(path):
+                if not opts.hidden and name.startswith("."):
+                    continue
+                fullname = os.path.join(path, name)
+                if fullname.startswith("./"):
+                    fullname = fullname[2:]
+                if os.path.isfile(fullname):
+                    filenames.append(fullname)
+                else:
+                    dirnames.append(fullname)
+        counts[0] += len(filenames)
+        counts[1] += len(dirnames)
+        process_lists(opts, filenames, dirnames)
+
+
+def process_lists(opts, filenames, dirnames):
+    keys_lines = []
+
+
+
+def process_options()
+    usage = """%prog [options] [path1 [path2 [... pathN]]]
+    
+"The paths are optional; if not given . is used."""
+
     parser = optparse.OptionParser(usage=usage)
-    parser.add_option("-H", "--hidden",
-                      action="store_true", dest="hidden", default=False,
-                      help="show hidden files [default: %default]")
-    parser.add_option("-m", "--modified",
-                      action="store_true", dest="modified", default=False,
-                      help="show last modified date/time [default: %default]")
-    parser.add_option("-o", "--order",
-                      default="name", type="choice",
-                      choices=['name', 'n', 'modified', 'm', 'size', 's'],
-                      help="order by ('name', 'n', 'modified', 'm', 'size', 's') [default: %default]")
-    parser.add_option("-r", "--recursive",
-                      action="store_true", dest="recursive", default=False,
-                      help="recurse into subdirectories [default: %default]")
-    parser.add_option("-s", "--sizes",
-                      action="store_true", dest="sizes", default=False,
-                      help="show sizes [default: %default]")
+    parser.add_option("-H", "--hidden", dest="hidden",
+                      action="store_true",
+                      help="show hidden files [default: off]")
+    parser.add_option("-m", "--modified", dest="modified",
+                      action="store_true",
+                      help="show last modified date/time [default: off]")
+    orderlist = ["name", "n", "modified", "m", "size", "s"]
+    parser.add_option("-o", "--order", dest="order",
+                      choices=orderlist,
+                      help=("order by ({0}) [default: %default]".format(
+                          ", ".join(["'" + x + "'" for x in orderlist]))))
+    parser.add_option("-r", "--recursive", dest="recursive",
+                      action="store_true",
+                      help="recurse into subdirectories [default: off]")
+    parser.add_option("-s", "--sizes", dest="sizes",
+                      action="store_true",
+                      help="show sizes [default: off]")
+    parser.set_defaults(order=orderlist[0])
     opts, args = parser.parse_args()
-    print(opts, args)
-    get_files_list(*args, hidden=opts.hidden, recursive=opts.recursive)
-    print(os.listdir("."))
-    for file in os.listdir("."):
-        print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(file))))
-        print()
-
-
-def get_files_list(*args, hidden, recursive):
     if not args:
         args = ["."]
-    file_dict = collections.defaultdict(dict)
-    for dir in args:
-        for root, dirs, files in os.walk(dir):
-            for filename in files:
-                fullname = os.path.join(root, filename)
-                filesize = os.path.getsize(fullname)
-                filedate = os.path.getmtime(fullname)
-
-    print(args, hidden, recursive)
+    return opts, args
 
 
 main()
